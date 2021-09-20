@@ -54,41 +54,46 @@ let baseMaps = {
 
 // Create the map object with center, zoom level and default layer.
 let map = L.map("mapid", {
-  center: [44.0, -80.0],
-  zoom: 2,
-  layers: [dark],
+  center: [43.7, -79.3],
+  zoom: 11,
+  layers: [streets], // default base map
 });
 
 // Pass our map layers into our layers control and add the layers control to the map.
 L.control.layers(baseMaps).addTo(map);
 
-// Accessing the Toronto airline routes GeoJSON URL.
-let torontoData =
-  "https://raw.githubusercontent.com/codestorms37/Mapping_Earthquakes/main/torontoRoutes.json";
+// Accessing the Toronto neighborhoods GeoJSON URL.
+let torontoHoods =
+  "https://raw.githubusercontent.com/codestorms37/Mapping_Earthquakes/main/torontoNeighborhoods.json";
 
-// Create a style for the lines.
+// Create a style for the polygon.
+// For more information, see the Leaflet documentation on changing color options and other features of polygons:
+// https://leafletjs.com/reference-1.6.0.html#path-color
 let myStyle = {
-  color: "#ffffa1",
+  color: "blue",
+  fillColor: "yellow",
   weight: 1,
 };
 
 // Grabbing our GeoJSON data.
-d3.json(torontoData).then(function (data) {
+d3.json(torontoHoods).then(function (data) {
   console.log(data);
   // Creating a GeoJSON layer with the retrieved data.
   L.geoJson(data, {
+    // add Style
     style: myStyle,
+    // add Popup
     onEachFeature: function (feature, layer) {
       console.log(layer);
       layer.bindPopup(
         "<h3>" +
-          "Airline: " +
-          feature.properties.airline +
+          "Area: " +
+          feature.properties.AREA_NAME +
           "</h3>" +
           "<hr>" +
           "<h5>" +
-          "Destination: " +
-          feature.properties.dst +
+          "Code: " +
+          feature.properties.AREA_S_CD +
           "</h5>"
       );
     },
