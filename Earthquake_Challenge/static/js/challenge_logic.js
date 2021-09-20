@@ -44,13 +44,15 @@ let baseMaps = {
   Dark: dark,
 };
 
-// 1. Add a 2nd layer group for the tectonic plate data.
-let allEarthquakes = new L.LayerGroup();
+// Layers
+let allEarthquakesLayer = new L.LayerGroup();
 let tectonicPlatesLayer = new L.LayerGroup();
+let mayorEarthquakesLayer = new L.LayerGroup();
 
 // 2. Add a reference to the tectonic plates group to the overlays object.
 let overlays = {
-  Earthquakes: allEarthquakes,
+  Earthquakes: allEarthquakesLayer,
+  "Mayor Earthquakes": mayorEarthquakesLayer,
   "Tectonic Plates": tectonicPlatesLayer,
 };
 
@@ -66,6 +68,8 @@ let map = L.map("mapid", {
 // Then we add a control to the map that will allow the user to change which
 // layers are visible.
 L.control.layers(baseMaps, overlays).addTo(map);
+
+// allEarthquakesLayer -------------------------------------
 
 // Retrieve the earthquake GeoJSON data.
 d3.json(
@@ -134,82 +138,73 @@ d3.json(
           feature.properties.place
       );
     },
-  }).addTo(allEarthquakes);
+  }).addTo(allEarthquakesLayer);
 
   // Then we add the earthquake layer to our map.
-  allEarthquakes.addTo(map);
+  allEarthquakesLayer.addTo(map);
+});
+// Legend ------------------------------------------------------------------
 
-  // Here we create a legend control object.
-  let legend = L.control({
-    position: "bottomright",
-  });
+// Here we create a legend control object.
+let legend = L.control({
+  position: "bottomright",
+});
 
-  // Then add all the details for the legend
-  legend.onAdd = function () {
-    let div = L.DomUtil.create("div", "info legend");
+// Then add all the details for the legend
+legend.onAdd = function () {
+  let div = L.DomUtil.create("div", "info legend");
 
-    const magnitudes = [0, 1, 2, 3, 4, 5];
-    const colors = [
-      "#98ee00",
-      "#d4ee00",
-      "#eecc00",
-      "#ee9c00",
-      "#ea822c",
-      "#ea2c2c",
-    ];
+  const magnitudes = [0, 1, 2, 3, 4, 5];
+  const colors = [
+    "#98ee00",
+    "#d4ee00",
+    "#eecc00",
+    "#ee9c00",
+    "#ea822c",
+    "#ea2c2c",
+  ];
 
-    // Looping through our intervals to generate a label with a colored square for each interval.
-    for (var i = 0; i < magnitudes.length; i++) {
-      console.log(colors[i]);
-      div.innerHTML +=
-        "<i style='background: " +
-        colors[i] +
-        "'></i> " +
-        magnitudes[i] +
-        (magnitudes[i + 1] ? "&ndash;" + magnitudes[i + 1] + "<br>" : "+");
-    }
-    return div;
+  // Looping through our intervals to generate a label with a colored square for each interval.
+  for (var i = 0; i < magnitudes.length; i++) {
+    console.log(colors[i]);
+    div.innerHTML +=
+      "<i style='background: " +
+      colors[i] +
+      "'></i> " +
+      magnitudes[i] +
+      (magnitudes[i + 1] ? "&ndash;" + magnitudes[i + 1] + "<br>" : "+");
+  }
+  return div;
+};
+
+// Finally, we our legend to the map.
+legend.addTo(map);
+
+// Tectonic Plates Layer ------------------------------
+
+// 3. Use d3.json to make a call to get our Tectonic Plate geoJSON data.
+let tectonicPlatesData = "../tectonicPlates.json";
+
+d3.json(tectonicPlatesData).then(function (data) {
+  console.log(data);
+
+  // Create a style for the lines.
+  let myStyle = {
+    color: "#ffffa1",
+    weight: 1,
   };
 
-  // Finally, we our legend to the map.
-  legend.addTo(map);
+  // Creating a GeoJSON layer with the retrieved data.
 
-  // 3. Use d3.json to make a call to get our Tectonic Plate geoJSON data.
-  let tectonicPlatesData =
-    "https://github.com/fraxen/tectonicplates/blob/master/GeoJSON/PB2002_boundaries.json";
+  L.geoJson(data, {
+    // add Style
+    style: myStyle,
 
-  d3.json(tectonicPlatesData).then(function (data) {
-    console.log(data);
+    onEachFeature: function (feature, layer) {
+      console.log(layer);
+    },
+  }).addTo(tectonicPlatesLayer);
 
-    // Create a style for the lines.
-    let myStyle = {
-      color: "#ffffa1",
-      weight: 1,
-    };
-
-    // Creating a GeoJSON layer with the retrieved data.
-
-    L.geoJson(data, {
-      // add Style
-      style: myStyle,
-
-      onEachFeature: function (feature, layer) {
-        console.log(layer);
-        layer.bindPopup(
-          "<h3>" +
-            "Airline: " +
-            feature.properties.airline +
-            "</h3>" +
-            "<hr>" +
-            "<h5>" +
-            "Destination: " +
-            feature.properties.dst +
-            "</h5>"
-        );
-      },
-    }).addTo(tectonicPlatesLayer);
-
-    // Then we add the earthquake layer to our map.
-    tectonicPlatesLayer;
-  });
+  // Then we add the mayor tectonic Plates layer to our map.
+  tectonicPlatesLayer.addTo(map);
 });
